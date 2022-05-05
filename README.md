@@ -1,6 +1,6 @@
 # RRT-MATLAB
 
-Simulation of RRT (Rapidly-Exploring Random Tree) algorithm written in MATLAB
+Simulation of RRT (Rapidly-Exploring Random Tree) algorithm written in MATLAB.
 
 <img src="https://github.com/shengwen-tw/rrt-matlab/blob/master/rrt_result.png?raw=true" width="70%" height="70%">
 
