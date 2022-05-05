@@ -1,5 +1,8 @@
 rng(100,'twister'); % for repeatable result
 
+%==========%
+% read map %
+%==========%
 image = imread('./map1.png');
 grayimage = rgb2gray(image);
 bwimage = grayimage < 0.5;
@@ -7,16 +10,18 @@ map = binaryOccupancyMap(bwimage);
 show(map)
 hold on;
 
-%RRT
+%===============%
+% RRT algorithm %
+%===============%
+
+%parameters
 MAX_ITERATION=1e5;
-map_size = [map.XWorldLimits(2); map.YWorldLimits(2)];
-
 p_start = [100, 100];
-p_goal = [1300, 700];
-
+p_goal = [1500, 700];
 goal_threshold = 100;
 delta = 50;
 
+map_size = [map.XWorldLimits(2); map.YWorldLimits(2)];
 tree.vertex(1).p = p_start;
 tree.vertex(1).p_last = p_start;
 tree.vertex(1).dist = 0;
@@ -79,6 +84,34 @@ for iteration = 1:MAX_ITERATION
     pause(0.01)
 end
 
+%===============================%
+% trace the trajectory solution %
+%===============================%
+path_cnt = 1;
+rtt.path(1).point = p_goal;
+%
+path_cnt = path_cnt + 1;
+rtt.path(2).point = p_new;
+%
+node_index = retrieve_node_index(tree, p_new);
+path_cnt = path_cnt + 1;
+rtt.path(path_cnt).point = tree.vertex(node_index).p_last;
+%
+while ~(rtt.path(path_cnt).point(1) == p_start(1) && ...
+        rtt.path(path_cnt).point(2) == p_start(2))
+    node_index = retrieve_node_index(tree, rtt.path(path_cnt).point);
+    path_cnt = path_cnt + 1;
+    rtt.path(path_cnt).point = tree.vertex(node_index).p_last;
+end
+
+for i = (path_cnt-1):-1:1
+    p_now = rtt.path(i).point;
+    p_next = rtt.path(i+1).point;
+    line([p_now(1) p_next(1)], [p_now(2) p_next(2)], 'color', 'r', 'LineWidth',2);
+    hold on;
+    pause(0.01);
+end
+
 disp(iteration)
 
 pause;
@@ -115,5 +148,13 @@ function feasible=check_feasible(point, map)
          point(2) >= 1 && point(2) <= world_edge_y && ...
          getOccupancy(map, [point(1), point(2)]) == 0)
         feasible = false;
+    end
+end
+
+function index=retrieve_node_index(tree, point)
+    index = 1;
+    while tree.vertex(index).p(1) ~= point(1) || ...
+          tree.vertex(index).p(2) ~= point(2)
+      index = index + 1;
     end
 end
